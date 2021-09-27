@@ -12,17 +12,13 @@ import java.util.StringTokenizer;
 
 
 /**
- * This class handles the incoming
- * request and all of the logic involved.
- * It exposes an interface for the
- * services to query aspects of the
- * request.
- * 
+ * This class handles the incoming request and all of the logic involved. It
+ * exposes an interface for the services to query aspects of the request.
  */
 public class RequestContext {
-  
+
   private static List<String> methods = new ArrayList<>();
-  
+
   static {
     methods.add("GET");
     methods.add("HEAD");
@@ -32,7 +28,7 @@ public class RequestContext {
   public final HTTPServer server;
   public final InputStream input;
   public final Scanner in;
-  
+
   public String method;
   public String resource;
   public String version;
@@ -52,13 +48,13 @@ public class RequestContext {
 
     this.method  = parse.nextToken().toUpperCase();
     String uri   = parse.nextToken();
-    this.version = parse.nextToken().toUpperCase(); 
+    this.version = parse.nextToken().toUpperCase();
 
     String[] uriComponents = parseURIComponents(uri);
 
     this.resource   = uriComponents[0];
     this.headers    = parseHeaders(in);
-    this.body       = ""; 
+    this.body       = "";
 
     try {
       this.parameters = parseQueryStrings(uriComponents[1]);
@@ -88,8 +84,8 @@ public class RequestContext {
   public String toString() {
     String qs = getParameters();
 
-    return this.method + " " 
-         + this.resource 
+    return this.method + " "
+         + this.resource
          + (qs.isEmpty() ? "" : "?" + qs);
   }
 
@@ -131,13 +127,13 @@ public class RequestContext {
   }
 
   private String toQueryString(Map<String, String> qs) throws Exception {
-    List<String> params = new ArrayList<>();   
+    List<String> params = new ArrayList<>();
     for (String key : qs.keySet()) {
       params.add(key + "=" + URLEncoder.encode(qs.get(key), "UTF-8"));
     }
     return String.join("&", params);
   }
-  
+
   private String readRequestBody(Scanner request) {
     String buffer;
     String body = "";
@@ -148,5 +144,5 @@ public class RequestContext {
       body += buffer;
     }
     return body;
-  }  
+  }
 }

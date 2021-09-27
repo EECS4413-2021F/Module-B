@@ -16,25 +16,24 @@ import java.util.Scanner;
 
 /**
  * HTTP Server example v1.3
- * 
- * Implements a number of endpoints over HTTP.
- * The root endpoint simply returns a plaintext message
- * "Hello! Welcome to the server.". The /calc endpoint
- * does simple arithmetic with the given query parameters.
- * The various arithmetic operations can be requested
- * directly and will redirect to /calc. The /students
- * endpoint queries the SIS table in the Derby database
- * and returns the students in the given major with a GPA
- * equal or greater than the value given.
- * 
+ *
+ * Implements a number of endpoints over HTTP. The root endpoint simply returns
+ * a plaintext message "Hello! Welcome to the server.". The /calc endpoint does
+ * simple arithmetic with the given query parameters. The various arithmetic
+ * operations can be requested directly and will redirect to /calc. The
+ * /students endpoint queries the SIS table in the Derby database and returns
+ * the students in the given major with a GPA equal or greater than the value
+ * given.
+ *
  * Supports the following request:
- * 
- *    GET /
- *    GET /students?major=<major>&gpa=<gpa>
- *    GET /calc?op=<op>&a=<number>&b=<number>
- *    GET /<op>?a=<number>&b=<number>
+ *
+ *    - GET /
+ *    - GET /students?major=<major>&gpa=<gpa>
+ *    - GET /calc?op=<op>&a=<number>&b=<number>
+ *    - GET /<op>?a=<number>&b=<number>
  *
  * where <op> is one of:
+ *
  *    - add
  *    - subtract
  *    - multiply
@@ -42,23 +41,20 @@ import java.util.Scanner;
  *    - exponent
  *
  * **Important Note:**
- * 
- * This is the third iteration of this implementation.
- * In iteration one, we took the business logic out of 
- * the `run` method and put it in a dedicated `doRequest`
- * method. In this version, we take that method entirely
- * out of the class, into the subclass MainService.
- * We made this class abstract and left the `doRequest`
- * method signature as an abstract method. We adjusted
- * the modifiers on the class variables to protected
- * so the subclass can access them.
- * 
+ *
+ * This is the third iteration of this implementation. In iteration one, we took
+ * the business logic out of the `run` method and put it in a dedicated
+ * `doRequest` method. In this version, we take that method entirely out of the
+ * class, into the subclass MainService. We made this class abstract and left
+ * the `doRequest` method signature as an abstract method. We adjusted the
+ * modifiers on the class variables to protected so the subclass can access
+ * them.
  */
 public abstract class HTTPServer3 extends Thread {
-  
+
   protected static final PrintStream log = System.out;
   protected static final Map<Integer, String> httpResponseCodes = new HashMap<>();
-  
+
   static {
     httpResponseCodes.put(100, "HTTP CONTINUE");
     httpResponseCodes.put(101, "SWITCHING PROTOCOLS");
@@ -98,9 +94,9 @@ public abstract class HTTPServer3 extends Thread {
     httpResponseCodes.put(504, "GATEWAY TIME OUT");
     httpResponseCodes.put(505, "HTTP VERSION NOT SUPPORTED");
   }
-  
+
   protected Socket client;
-  
+
   public HTTPServer3(Socket client) {
     this.client = client;
   }
@@ -114,7 +110,7 @@ public abstract class HTTPServer3 extends Thread {
       return uri.split("\\?", 2);
     }
   }
-  
+
   protected Map<String, String> getHeaders(Scanner req) {
     Map<String, String> headers = new HashMap<>();
 
@@ -134,7 +130,7 @@ public abstract class HTTPServer3 extends Thread {
   protected Map<String, String> getQueryStrings(String qs) throws Exception {
     Map<String, String> queries = new HashMap<>();
     String[] fields = qs.split("&");
-    
+
     for (String field : fields) {
       String[] pairs = field.split("=", 2);
       if (pairs.length == 2) {
@@ -146,7 +142,7 @@ public abstract class HTTPServer3 extends Thread {
   }
 
   protected String toQueryString(Map<String, String> qs) throws Exception {
-    List<String> params = new ArrayList<>();   
+    List<String> params = new ArrayList<>();
     for (String key : qs.keySet()) {
       params.add(key + "=" + URLEncoder.encode(qs.get(key), "UTF-8"));
     }
@@ -194,7 +190,7 @@ public abstract class HTTPServer3 extends Thread {
       try (Scanner parse = new Scanner(request)) {
         method   = parse.next().toUpperCase();
         uri      = parse.next();
-        version  = parse.next().toUpperCase(); 
+        version  = parse.next().toUpperCase();
       }
 
       Map<String, String> reqHeaders = getHeaders(req);
@@ -205,7 +201,7 @@ public abstract class HTTPServer3 extends Thread {
       resHeaders.put("Server", "Java HTTP Server : 1.0");
       resHeaders.put("Date", new Date());
       resHeaders.put("Content-Type", "text/plain");
-      
+
       try {
         if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
           httpResponse.setStatus(501);
@@ -225,7 +221,7 @@ public abstract class HTTPServer3 extends Thread {
 
           doRequest(httpRequest, httpResponse);
         }
-      } catch (Exception err) {       
+      } catch (Exception err) {
         log.println(err.getMessage());
         err.printStackTrace(log);
         httpResponse.setStatus(500);
@@ -239,14 +235,14 @@ public abstract class HTTPServer3 extends Thread {
       }
 
       String responseText = response.toString();
-      resHeaders.put("Content-Length", responseText.getBytes().length);      
+      resHeaders.put("Content-Length", responseText.getBytes().length);
       sendHeaders(res, status, resHeaders);
 
       if (!method.equals("HEAD")) {
         res.println(responseText);
       }
 
-      res.flush(); // flush character output stream buffer      
+      res.flush(); // flush character output stream buffer
     } catch (Exception e) {
       log.println(e);
     } finally {
@@ -260,12 +256,12 @@ public abstract class HTTPServer3 extends Thread {
     final Map<String, String> headers;
     final Map<String, String> qs;
     final String body;
-  
+
     public Request(
-      String method, 
-      String uri, 
-      Map<String, String> headers, 
-      Map<String, String> qs, 
+      String method,
+      String uri,
+      Map<String, String> headers,
+      Map<String, String> qs,
       String body
     ) {
       this.method  = method;
@@ -275,13 +271,13 @@ public abstract class HTTPServer3 extends Thread {
       this.body    = body;
     }
   }
-  
+
   class Response {
     private int status;
     final Map<String, Object> headers;
     final StringWriter response = new StringWriter();
-    final PrintWriter  out      = new PrintWriter(response); 
-  
+    final PrintWriter  out      = new PrintWriter(response);
+
     public Response(int status, Map<String, Object> headers) {
       this.status  = status;
       this.headers = headers;

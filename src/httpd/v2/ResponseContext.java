@@ -10,17 +10,14 @@ import java.util.Map;
 
 
 /**
- * This class handles the outgoing
- * response to the client and all of the
- * logic involved. It exposes an interface
- * for the services to form and send the
+ * This class handles the outgoing response to the client and all of the logic
+ * involved. It exposes an interface for the services to form and send the
  * response.
- * 
  */
 public class ResponseContext {
 
   protected static final Map<Integer, String> httpResponseCodes = new HashMap<>();
-  
+
   static {
     httpResponseCodes.put(100, "HTTP CONTINUE");
     httpResponseCodes.put(101, "SWITCHING PROTOCOLS");
@@ -62,7 +59,7 @@ public class ResponseContext {
   }
 
   private int status;
-  
+
   public final OutputStream output;
   public final Map<String, Object> headers = new HashMap<>();
   public final StringWriter response = new StringWriter();
@@ -101,16 +98,16 @@ public class ResponseContext {
 
   protected void sendHeaders(PrintWriter head) {
     head.printf("HTTP/1.1 %d %s\n", getStatus(), getStatusText());
-    headers.entrySet().stream().forEach(e -> 
+    headers.entrySet().stream().forEach(e ->
         head.printf("%s: %s\n", e.getKey(), e.getValue().toString()));
     head.println();
   }
 
   public void send(boolean hasBody) {
     try (
-      StringWriter hout = new StringWriter(); 
+      StringWriter hout = new StringWriter();
       PrintWriter  head = new PrintWriter(hout);
-      StringWriter bout = this.response; 
+      StringWriter bout = this.response;
       PrintWriter  body = this.out;
     ) {
       sendHeaders(head);
@@ -120,5 +117,5 @@ public class ResponseContext {
     } catch (Exception e) {
       HTTPServer.log.println(e.getMessage());
     }
-  }  
+  }
 }

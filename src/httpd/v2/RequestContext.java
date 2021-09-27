@@ -12,12 +12,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This class handles the incoming
- * request and all of the logic involved.
- * It exposes an interface for the
- * services to query aspects of the
- * request.
- * 
+ * This class handles the incoming request and all of the logic involved. It
+ * exposes an interface for the services to query aspects of the request.
  */
 public class RequestContext {
 
@@ -44,12 +40,12 @@ public class RequestContext {
     this.method  = parse.nextToken().toUpperCase();
     String uri   = parse.nextToken();
     this.version = parse.nextToken().toUpperCase();
-    
+
     String[] uriComponents = getURIComponents(uri);
 
     this.uri     = uriComponents[0];
     this.headers = getHeaders(req);
-    this.body    = ""; 
+    this.body    = "";
 
     try {
       this.qs = getQueryStrings(uriComponents[1]);
@@ -61,7 +57,7 @@ public class RequestContext {
       getRequestBody(req);
     }
 
-    if (!this.method.equals("GET")  && 
+    if (!this.method.equals("GET")  &&
         !this.method.equals("POST") &&
         !this.method.equals("HEAD")) {
       response.setStatus(501);
@@ -77,7 +73,7 @@ public class RequestContext {
       return uri.split("\\?", 2);
     }
   }
-  
+
   public Map<String, String> getHeaders(Scanner req) {
     Map<String, String> headers = new HashMap<>();
 
@@ -97,7 +93,7 @@ public class RequestContext {
   public Map<String, String> getQueryStrings(String qs) throws Exception {
     Map<String, String> queries = new HashMap<>();
     String[] fields = qs.split("&");
-    
+
     for (String field : fields) {
       String[] pairs = field.split("=", 2);
       if (pairs.length == 2) {
@@ -109,7 +105,7 @@ public class RequestContext {
   }
 
   public String toQueryString(Map<String, String> qs) throws Exception {
-    List<String> params = new ArrayList<>();   
+    List<String> params = new ArrayList<>();
     for (String key : qs.keySet()) {
       params.add(key + "=" + URLEncoder.encode(qs.get(key), "UTF-8"));
     }

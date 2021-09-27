@@ -26,25 +26,24 @@ import com.google.gson.JsonObject;
 
 /**
  * HTTP Server example v1.0
- * 
- * Implements a number of endpoints over HTTP.
- * The root endpoint simply returns a plaintext message
- * "Hello! Welcome to the server.". The /calc endpoint
- * does simple arithmetic with the given query parameters.
- * The various arithmetic operations can be requested
- * directly and will redirect to /calc. The /students
- * endpoint queries the SIS table in the Derby database
- * and returns the students in the given major with a GPA
- * equal or greater than the value given.
- * 
+ *
+ * Implements a number of endpoints over HTTP. The root endpoint simply returns
+ * a plaintext message "Hello! Welcome to the server.". The /calc endpoint does
+ * simple arithmetic with the given query parameters. The various arithmetic
+ * operations can be requested directly and will redirect to /calc. The
+ * /students endpoint queries the SIS table in the Derby database and returns
+ * the students in the given major with a GPA equal or greater than the value
+ * given.
+ *
  * Supports the following request:
- * 
- *    GET /
- *    GET /students?major=<major>&gpa=<gpa>
- *    GET /calc?op=<op>&a=<number>&b=<number>
- *    GET /<op>?a=<number>&b=<number>
+ *
+ *    - GET /
+ *    - GET /students?major=<major>&gpa=<gpa>
+ *    - GET /calc?op=<op>&a=<number>&b=<number>
+ *    - GET /<op>?a=<number>&b=<number>
  *
  * where <op> is one of:
+ *
  *    - add
  *    - subtract
  *    - multiply
@@ -52,22 +51,19 @@ import com.google.gson.JsonObject;
  *    - exponent
  *
  * **Important Note:**
- * 
- * This is implementation is messy because
- * the server logic, handling of the HTTP protocol and the
- * business logic are all mixed together in the same class.
- * In subsequent iterations of this code, we will decouple
- * these parts, and add abstraction and encapsulation to
- * our implementation. To start, we have taken the
- * business logic out of the `run` method and put it in
- * a dedicated `doRequest` method.
  *
+ * This is implementation is messy because the server logic, handling of the
+ * HTTP protocol and the business logic are all mixed together in the same
+ * class. In subsequent iterations of this code, we will decouple these parts,
+ * and add abstraction and encapsulation to our implementation. To start, we
+ * have taken the business logic out of the `run` method and put it in a
+ * dedicated `doRequest` method.
  */
 public class HTTPServer1 extends Thread {
-  
+
   private static final PrintStream log = System.out;
   private static final Map<Integer, String> httpResponseCodes = new HashMap<>();
-  
+
   static {
     httpResponseCodes.put(100, "HTTP CONTINUE");
     httpResponseCodes.put(101, "SWITCHING PROTOCOLS");
@@ -107,9 +103,9 @@ public class HTTPServer1 extends Thread {
     httpResponseCodes.put(504, "GATEWAY TIME OUT");
     httpResponseCodes.put(505, "HTTP VERSION NOT SUPPORTED");
   }
-  
+
   private Socket client;
-  
+
   public HTTPServer1(Socket client) {
     this.client = client;
   }
@@ -123,7 +119,7 @@ public class HTTPServer1 extends Thread {
       return uri.split("\\?", 2);
     }
   }
-  
+
   private Map<String, String> getHeaders(Scanner req) {
     Map<String, String> headers = new HashMap<>();
 
@@ -143,7 +139,7 @@ public class HTTPServer1 extends Thread {
   private Map<String, String> getQueryStrings(String qs) throws Exception {
     Map<String, String> queries = new HashMap<>();
     String[] fields = qs.split("&");
-    
+
     for (String field : fields) {
       String[] pairs = field.split("=", 2);
       if (pairs.length == 2) {
@@ -155,7 +151,7 @@ public class HTTPServer1 extends Thread {
   }
 
   private String toQueryString(Map<String, String> qs) throws Exception {
-    List<String> params = new ArrayList<>();   
+    List<String> params = new ArrayList<>();
     for (String key : qs.keySet()) {
       params.add(key + "=" + URLEncoder.encode(qs.get(key), "UTF-8"));
     }
@@ -183,9 +179,9 @@ public class HTTPServer1 extends Thread {
     });
     res.println();
   }
-  
+
   /// Thread
-  
+
   public void run() {
     final String clientAddress = String.format("%s:%d", client.getInetAddress(), client.getPort());
     log.printf("Connected to %s\n", clientAddress);
@@ -199,12 +195,12 @@ public class HTTPServer1 extends Thread {
       String method, uri, version;
 
       StringWriter response = new StringWriter();
-      PrintWriter  writer   = new PrintWriter(response); 
+      PrintWriter  writer   = new PrintWriter(response);
 
       try (Scanner parse = new Scanner(request)) {
         method   = parse.next().toUpperCase();
         uri      = parse.next();
-        version  = parse.next().toUpperCase(); 
+        version  = parse.next().toUpperCase();
       }
 
       int status = 200;
@@ -215,7 +211,7 @@ public class HTTPServer1 extends Thread {
       resHeaders.put("Server", "Java HTTP Server : 1.0");
       resHeaders.put("Date", new Date());
       resHeaders.put("Content-Type", "text/plain");
-      
+
       try {
         if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
           status = 501;
@@ -231,10 +227,10 @@ public class HTTPServer1 extends Thread {
             body = getRequestBody(req);
           }
 
-          status = doRequest(method, uri, reqHeaders, qs, body, 
+          status = doRequest(method, uri, reqHeaders, qs, body,
                              status, resHeaders, writer);
         }
-      } catch (Exception err) {       
+      } catch (Exception err) {
         log.println(err.getMessage());
         err.printStackTrace(log);
         status = 500;
@@ -245,14 +241,14 @@ public class HTTPServer1 extends Thread {
       }
 
       String responseText = response.toString();
-      resHeaders.put("Content-Length", responseText.getBytes().length);      
+      resHeaders.put("Content-Length", responseText.getBytes().length);
       sendHeaders(res, status, resHeaders);
 
       if (!method.equals("HEAD")) {
         res.println(responseText);
       }
 
-      res.flush(); // flush character output stream buffer      
+      res.flush(); // flush character output stream buffer
     } catch (Exception e) {
       log.println(e);
     } finally {
@@ -262,7 +258,7 @@ public class HTTPServer1 extends Thread {
 
   /// Request
 
-  private int doRequest(String method, String uri, Map<String, String> reqHeaders, Map<String, String> qs, String body,   
+  private int doRequest(String method, String uri, Map<String, String> reqHeaders, Map<String, String> qs, String body,
                         int status, Map<String, Object> resHeaders, PrintWriter response) throws Exception {
 
     switch (uri) {
@@ -275,7 +271,7 @@ public class HTTPServer1 extends Thread {
           String op = qs.get("op");
           double a = Double.parseDouble(qs.get("a"));
           double b = Double.parseDouble(qs.get("b"));
-          
+
           switch (op) {
             case "add":      response.println(a + b); break;
             case "subtract": response.println(a - b); break;
@@ -286,7 +282,7 @@ public class HTTPServer1 extends Thread {
               return 400;
           }
         } else {
-          return 400;          
+          return 400;
         }
         break;
 
@@ -314,8 +310,8 @@ public class HTTPServer1 extends Thread {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
               statement.setString(1, major);
               statement.setDouble(2, gpa);
-       
-              JsonArray students = new JsonArray(); 
+
+              JsonArray students = new JsonArray();
 
               try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
@@ -333,7 +329,7 @@ public class HTTPServer1 extends Thread {
 
               JsonObject jsonRoot = new JsonObject();
               jsonRoot.add("students", students);
-              
+
               resHeaders.put("Content-Type", "application/json");
               response.println(jsonRoot);
             }
@@ -344,7 +340,7 @@ public class HTTPServer1 extends Thread {
             log.println("Disconnected from database.");
           }
         } else {
-          return 400;          
+          return 400;
         }
         break;
 
@@ -355,7 +351,7 @@ public class HTTPServer1 extends Thread {
   }
 
   /// Main
-  
+
   public static void main(String[] args) throws Exception {
     int port = 0;
     InetAddress host = InetAddress.getLocalHost(); // .getLoopbackAddress();

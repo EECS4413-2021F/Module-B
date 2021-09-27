@@ -9,12 +9,9 @@ import java.util.Map;
 
 
 /**
- * This class handles the outgoing
- * response to the client and all of the
- * logic involved. It exposes an interface
- * for the services to form and send the
+ * This class handles the outgoing response to the client and all of the logic
+ * involved. It exposes an interface for the services to form and send the
  * response.
- * 
  */
 public class ResponseContext {
 
@@ -59,7 +56,7 @@ public class ResponseContext {
     httpResponseCodes.put(504, "GATEWAY TIME OUT");
     httpResponseCodes.put(505, "HTTP VERSION NOT SUPPORTED");
   }
-  
+
   public final HTTPServer server;
   public final OutputStream output;
   public final Map<String, Object> headers = new HashMap<>();
@@ -68,7 +65,7 @@ public class ResponseContext {
 
   private int status;
   private StringWriter bout;
-  
+
   public ResponseContext(HTTPServer server, OutputStream output) throws Exception {
     this.setStatus(200);
 
@@ -90,23 +87,23 @@ public class ResponseContext {
   public String getStatusText() {
     return httpResponseCodes.get(getStatus());
   }
-  
+
   public String getResponseText() {
     return bout.toString();
   }
 
   protected void sendHeaders(PrintWriter head) {
     head.printf("HTTP/1.1 %d %s\n", getStatus(), getStatusText());
-    headers.entrySet().stream().forEach(e -> 
+    headers.entrySet().stream().forEach(e ->
         head.printf("%s: %s\n", e.getKey(), e.getValue().toString()));
     head.println();
   }
-  
+
   public void send(boolean hasBody) {
     try (
-      StringWriter hout = new StringWriter(); 
+      StringWriter hout = new StringWriter();
       PrintWriter  head = new PrintWriter(hout);
-      StringWriter bout = this.bout; 
+      StringWriter bout = this.bout;
       PrintWriter  body = this.body;
     ) {
       sendHeaders(head);

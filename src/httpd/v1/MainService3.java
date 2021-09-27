@@ -15,14 +15,10 @@ import com.google.gson.JsonObject;
 
 /**
  * The subclass of the HTTP Server v1.3.
- * 
- * This class contains all of the business
- * logic of the service, separate from the
- * server logic. It is still quite messy as
- * it is handling the function of all four
- * disparate endpoints. We will eventually
- * separate them.
- * 
+ *
+ * This class contains all of the business logic of the service, separate from
+ * the server logic. It is still quite messy as it is handling the function of
+ * all four disparate endpoints. We will eventually separate them.
  */
 public class MainService3 extends HTTPServer3 {
 
@@ -38,12 +34,12 @@ public class MainService3 extends HTTPServer3 {
 
       case "/calc":
         if (req.qs.containsKey("op") &&
-            req.qs.containsKey("a") && 
+            req.qs.containsKey("a") &&
             req.qs.containsKey("b")) {
           String op = req.qs.get("op");
           double a = Double.parseDouble(req.qs.get("a"));
           double b = Double.parseDouble(req.qs.get("b"));
-          
+
           switch (op) {
             case "add":      res.out.println(a + b); break;
             case "subtract": res.out.println(a - b); break;
@@ -54,7 +50,7 @@ public class MainService3 extends HTTPServer3 {
               res.setStatus(400);
           }
         } else {
-          res.setStatus(400);          
+          res.setStatus(400);
         }
         break;
 
@@ -66,9 +62,9 @@ public class MainService3 extends HTTPServer3 {
         res.setStatus(301);
         res.headers.put("Location", "/calc?op=" + req.uri.substring(1) + "&" + toQueryString(req.qs));
         break;
-        
+
       case "/students":
-        if (req.qs.containsKey("major") && 
+        if (req.qs.containsKey("major") &&
             req.qs.containsKey("gpa")) {
           String url   = "jdbc:derby://localhost:64413/EECS";
           String query = "SELECT * FROM Roumani.Sis "
@@ -84,9 +80,9 @@ public class MainService3 extends HTTPServer3 {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
               statement.setString(1, major);
               statement.setDouble(2, gpa);
-       
+
               JsonObject jsonRoot = new JsonObject();
-              JsonArray  students = new JsonArray(); 
+              JsonArray  students = new JsonArray();
 
               try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
@@ -103,7 +99,7 @@ public class MainService3 extends HTTPServer3 {
               }
 
               jsonRoot.add("students", students);
-              
+
               res.headers.put("Content-Type", "application/json");
               res.out.println(jsonRoot);
             }
@@ -114,7 +110,7 @@ public class MainService3 extends HTTPServer3 {
             log.println("Disconnected from database.");
           }
         } else {
-          res.setStatus(400);          
+          res.setStatus(400);
         }
         break;
 
