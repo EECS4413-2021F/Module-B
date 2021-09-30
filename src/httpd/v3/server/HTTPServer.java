@@ -1,50 +1,52 @@
 package httpd.v3.server;
 
 import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
 
 
-public class HTTPServer {
+public abstract class HTTPServer extends Thread {
+  
+  public static final PrintStream log = System.out;
 
-  public final PrintStream log;
-  public final InetAddress host;
-  public final int port;
-
-  private Map<String, ServiceWorker> services = new HashMap<>();
-
-  public HTTPServer(InetAddress host, int port, PrintStream log, Map<String, BiFunction<HTTPServer, String, ServiceWorker>> serviceConstrs) {
-    this.log  = log;
-    this.host = host;
-    this.port = port;
-
-    serviceConstrs.forEach((uri, constr) -> {
-      services.put(uri, constr.apply(this, uri));
-    });
-
-    Worker worker = RootWorker.getInstance(this, services);
-
-    try (ServerSocket server = new ServerSocket(port, 0, host)) {
-      insertLogEntry("Server Start:", server.getInetAddress().toString() + ":" + server.getLocalPort());
-
-      while (true) {
-        Socket client = server.accept();
-        MyThread mt = new MyThread(worker, client);
-        mt.start();
-      }
-    } catch (Exception e) {
-      insertLogEntry("Server Exception:", e.getMessage());
-    } finally {
-      insertLogEntry("Server", "Stop");
-    }
+  protected Socket client;
+  
+  public HTTPServer(Socket client) {
+    this.client = client;
   }
 
-  public void insertLogEntry(String entry, String subEntry) {
-    log.printf("[%tT] %s %s\n", new Date(), entry, subEntry);
+  protected abstract void doRequest(RequestContext req, ResponseContext res) throws Exception;
+
+  public void run() {
+    final String clientAddress = String.format("%s:%d", client.getInetAddress(), client.getPort());
+    log.printf("Connected to %s\n", clientAddress);
+
+    try (Socket client = this.client) {
+      RequestContext  request  = null;
+      ResponseContext response = null;
+
+      try {
+        request  = new RequestContext(client.getInputStream());
+        response = new ResponseContext(client.getOutputStream());
+        request.processRequest(response);        
+        doRequest(request, response);
+      } catch (Exception err) {       
+        log.println(err.getMessage());
+        response.setStatus(500);
+      }
+
+      if (response.getStatus() != 200 && response.getResponseText().isEmpty()) {
+        response.out.println(response.getStatusText());
+      }
+
+      response.headers.put("Content-Length", response.getResponseText().getBytes().length);
+      response.send(!request.method.equals("HEAD"));
+
+      request.req.close();
+      response.res.close();
+    } catch (Exception e) {
+      log.println(e);
+    } finally {
+      log.printf("Disconnected from %s\n", clientAddress);
+    }
   }
 }

@@ -1,19 +1,13 @@
 package httpd.v3;
 
-import httpd.v3.server.HTTPServer;
 import httpd.v3.server.RequestContext;
 import httpd.v3.server.ResponseContext;
-import httpd.v3.server.ServiceWorker;
+import httpd.v3.server.Service;
 
 
-public class CalcOpService extends ServiceWorker {
-
-  public CalcOpService(HTTPServer server, String uri) {
-    super(server, uri);
-  }
-
-  public void doRequest(RequestContext request, ResponseContext response) {
+public class CalcOpService implements Service {
+  public void doRequest(RequestContext request, ResponseContext response) throws Exception {
     response.setStatus(301);
-    response.headers.put("Location", "/calc?op=" + request.resource.substring(1) + "&" + request.getParameters());
+    response.headers.put("Location", "/calc?op=" + request.uri.substring(1) + "&" + request.toQueryString(request.qs));
   }
 }

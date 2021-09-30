@@ -1,35 +1,50 @@
-package httpd.v3;
+package httpd.v4;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import httpd.v3.server.HTTPServer;
-import httpd.v3.server.RequestContext;
-import httpd.v3.server.ResponseContext;
-import httpd.v3.server.Service;
+import httpd.v4.server.HTTPServer;
+import httpd.v4.server.RequestContext;
+import httpd.v4.server.ResponseContext;
+import httpd.v4.server.ServiceWorker;
 
 
-public class StudentsService implements Service {
+public class StudentsService extends ServiceWorker {
   public static final String dbURL = "jdbc:derby://localhost:64413/EECS";
   public static final String query = "SELECT * FROM Roumani.Sis "
                                    + "WHERE major = ? "
                                    + "AND gpa >= ?";  
 
-  public void doRequest(RequestContext request, ResponseContext response) throws Exception {
-    if (request.qs.containsKey("major") && 
-        request.qs.containsKey("gpa")) {
+  public StudentsService(HTTPServer server, String uri) {
+    super(server, uri);
+  }
 
-      String major = request.qs.get("major");
-      double gpa   = Double.parseDouble(request.qs.get("gpa"));
+  public void doRequest(RequestContext request, ResponseContext response) {
+    Map<String, String> qs = request.parameters;
+
+    if (!qs.containsKey("major") || !qs.containsKey("gpa")) {
+      response.setStatus(400);      
+    } else {
+      String major;
+      double gpa;
+
+      try {
+        major = qs.get("major");
+        gpa   = Double.parseDouble(qs.get("gpa"));
+      } catch (Exception e) {
+        response.setStatus(400);
+        return;
+      }
 
       try (Connection connection = DriverManager.getConnection(dbURL)) {
-        HTTPServer.log.printf("Connected to database: %s\n", connection.getMetaData().getURL());
+        server.insertLogEntry("Database Connection Established:", connection.getMetaData().getURL());
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
           statement.setString(1, major);
@@ -53,18 +68,16 @@ public class StudentsService implements Service {
           }
 
           jsonRoot.add("students", students);
-
+          
           response.headers.put("Content-Type", "application/json");
-          response.out.println(jsonRoot);
+          response.body.println(jsonRoot);          
         }
       } catch (SQLException e) {
-        HTTPServer.log.println(e);
+        server.insertLogEntry("Database Exception:", e.getMessage());
         response.setStatus(500);
       } finally {
-        HTTPServer.log.println("Disconnected from database.");
+        server.insertLogEntry("Database Connection Ended:", dbURL);
       }
-    } else {
-      response.setStatus(400);          
     }
   }
 }

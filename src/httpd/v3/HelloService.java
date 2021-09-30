@@ -1,18 +1,12 @@
 package httpd.v3;
 
-import httpd.v3.server.HTTPServer;
 import httpd.v3.server.RequestContext;
 import httpd.v3.server.ResponseContext;
-import httpd.v3.server.ServiceWorker;
+import httpd.v3.server.Service;
 
 
-public class HelloService extends ServiceWorker {
-
-  public HelloService(HTTPServer server, String uri) {
-    super(server, uri);
-  }
-
+public class HelloService implements Service {
   public void doRequest(RequestContext request, ResponseContext response) {
-    response.body.println("Hello! Welcome to the server.");
+    response.out.println("Hello! Welcome to the server.");
   }
 }

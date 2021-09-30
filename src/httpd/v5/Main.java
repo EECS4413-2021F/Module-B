@@ -1,4 +1,4 @@
-package httpd.v3;
+package httpd.v5;
 
 import java.io.PrintStream;
 import java.net.InetAddress;
@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import httpd.v3.server.HTTPServer;
-import httpd.v3.server.ServiceWorker;
+import httpd.v5.server.HTTPServer;
+import httpd.v5.server.ServiceWorker;
 
 
-public class MainService {
+public class Main {
   public static void main(String[] args) throws Exception {
     int port         = 0;
     InetAddress host = InetAddress.getLocalHost();

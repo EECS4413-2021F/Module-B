@@ -1,10 +1,9 @@
-package httpd.v3.server;
+package httpd.v4.server;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +15,7 @@ import java.util.Map;
  */
 public class ResponseContext {
 
-  protected static final Map<Integer, String> httpResponseCodes = new HashMap<>();
+  private static final Map<Integer, String> httpResponseCodes = new HashMap<>();
 
   static {
     httpResponseCodes.put(100, "HTTP CONTINUE");
@@ -58,20 +57,23 @@ public class ResponseContext {
     httpResponseCodes.put(505, "HTTP VERSION NOT SUPPORTED");
   }
 
-  private int status;
-
+  public final HTTPServer server;
   public final OutputStream output;
   public final Map<String, Object> headers = new HashMap<>();
-  public final StringWriter response = new StringWriter();
-  public final PrintWriter  out      = new PrintWriter(response);
-  public final PrintStream  res;
+  public final PrintWriter body;
+  public final PrintStream out;
 
-  public ResponseContext(OutputStream output) {
-    this.output = output;
-    this.res    = new PrintStream(output, true);
+  private int status;
+  private StringWriter bout;
 
+  public ResponseContext(HTTPServer server, OutputStream output) throws Exception {
     this.setStatus(200);
-    this.defaultHeaders();
+
+    this.server = server;
+    this.output = output;
+    this.bout   = new StringWriter();
+    this.body   = new PrintWriter(bout);
+    this.out    = new PrintStream(output);
   }
 
   public int getStatus() {
@@ -87,13 +89,7 @@ public class ResponseContext {
   }
 
   public String getResponseText() {
-    return response.toString();
-  }
-
-  public void defaultHeaders() {
-    headers.put("Server", "Java HTTP Server : 1.0");
-    headers.put("Date", new Date());
-    headers.put("Content-Type", "text/plain");
+    return bout.toString();
   }
 
   protected void sendHeaders(PrintWriter head) {
@@ -107,15 +103,16 @@ public class ResponseContext {
     try (
       StringWriter hout = new StringWriter();
       PrintWriter  head = new PrintWriter(hout);
-      StringWriter bout = this.response;
-      PrintWriter  body = this.out;
+      StringWriter bout = this.bout;
+      PrintWriter  body = this.body;
     ) {
       sendHeaders(head);
-      res.print(hout.toString());
-      if (hasBody) res.print(bout.toString());
-      res.flush();
+      out.print(hout.toString());
+      if (hasBody) out.print(bout.toString());
+      out.flush();
+      server.insertLogEntry("Response Sent:", hout.toString().split("\n")[0]);
     } catch (Exception e) {
-      HTTPServer.log.println(e.getMessage());
+      server.insertLogEntry("Response Exception:", e.getMessage());
     }
   }
 }
