@@ -2,6 +2,7 @@
 # From: http://www.cs.toronto.edu/~penny/teaching/csc309-01f/lectures/40/cgi-bin.zip
 
 print "Content-type: text/html\n\n";
+
 print "<pre style='font: bolder 24pt'>\n";
 print "Environment\n";
 
@@ -13,9 +14,9 @@ while (@keys) {
 }
 
 print "STDIN\n";
-while(<>){
-  print;
-}
+#while(<>){
+#  print;
+#}
 
 print "</pre>\n";
 
