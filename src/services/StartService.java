@@ -1,18 +1,25 @@
+package services;
 import java.io.*;
 import javax.servlet.*;
 import javax.servlet.annotation.*;
 import javax.servlet.http.*;
 
-/**
- * Servlet implementation class Start
- */
-@WebServlet(urlPatterns = {"/Start", "/Startup", "/Startup/*"})
-public class Start extends HttpServlet {
+@WebServlet(
+    urlPatterns = {"/Start", "/Startup", "/Startup/*"},
+    initParams  = {
+        @WebInitParam(name = "principle",    value = "0"),
+        @WebInitParam(name = "amortization", value = "1"),
+        @WebInitParam(name = "interest",     value = "0.01")
+    }
+)
+public class StartService extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public Start() {
+    public StartService() {
         super();
     }
 
@@ -47,7 +54,6 @@ public class Start extends HttpServlet {
         theNetworkingLayer(request, response, res);
         theHTTPLayer(request, res);
         theURL(request, response, res);
-        theDeploymentDescriptor(request, res);
         theComputation(request, res);
 
     } // doGet
@@ -136,39 +142,13 @@ public class Start extends HttpServlet {
         // to redirect to Start. Hint: use the sendRedirect
         // method of the response object.
 
-        if ((request.getContextPath() + "/Startup/YorkBank").equals(request.getRequestURI())) {
-            response.sendRedirect(request.getContextPath() + "/Start");
+        if ((request.getContextPath() + "/Module_B/Startup/YorkBank").equals(request.getRequestURI())) {
+            response.sendRedirect(request.getContextPath() + "/Module_B/Start");
         }
 
         res.println();
 
     } // theURL
-
-    private void theDeploymentDescriptor(HttpServletRequest request, PrintWriter res) {
-
-        //
-        // Add Start to the welcome file list and test it.
-        //
-        // Add a context parameter and verify
-        // that you can access it in the servlet.
-        //
-        // Add an error-page for error-code 404
-        // and point it at location /res/my404.jspx.
-        // Test by visiting a non-existent page.
-        //
-        // Add an error-page for exception-type
-        // java.lang.Exception and point it at location
-        // /res/myException.jspx. Test by triggerring
-        // any exception in your servlet.
-        //
-
-        //res.println("Ctx Parameter app_name: "
-        //        + request
-        //            .getServletContext()
-        //            .getInitParameter("app_name"));
-        //res.println();
-
-    } // theDeploymentDescriptor
 
     private void theComputation(HttpServletRequest request, PrintWriter res) {
 
@@ -197,15 +177,13 @@ public class Start extends HttpServlet {
         // or on the network.
         //
 
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(true);
 
         double principle = request.getParameter("principle") != null
             ? Double.parseDouble(request.getParameter("principle"))
             : (session.getAttribute("principle") != null
                 ? (double)session.getAttribute("principle")
-                : Double.parseDouble(request
-                    .getServletContext()
-                    .getInitParameter("principle")
+                : Double.parseDouble(getInitParameter("principle")
                 )
             );
 
@@ -213,17 +191,13 @@ public class Start extends HttpServlet {
             ? Double.parseDouble(request.getParameter("amortization"))
             : (session.getAttribute("amortization") != null
                 ? (double)session.getAttribute("amortization")
-                : Double.parseDouble(request
-                    .getServletContext()
-                    .getInitParameter("amortization")
+                : Double.parseDouble(getInitParameter("amortization")
                 )
             );
 
         double interest = Double.parseDouble(request.getParameter("interest") != null
             ? request.getParameter("interest")
-            : request
-                .getServletContext()
-                .getInitParameter("interest")
+            : getInitParameter("interest")
         ) / 100;
 
         double monthlyInterest = interest / 12;
