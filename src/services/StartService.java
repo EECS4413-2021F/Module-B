@@ -5,12 +5,12 @@ import javax.servlet.annotation.*;
 import javax.servlet.http.*;
 
 @WebServlet(
-  urlPatterns = {"/Start", "/Startup", "/Startup/*"},
-  initParams  = {
-    @WebInitParam(name = "principle",    value = "0"),
-    @WebInitParam(name = "amortization", value = "1"),
-    @WebInitParam(name = "interest",     value = "0.01")
-  }
+    urlPatterns = {"/Start", "/Startup", "/Startup/*"},
+    initParams = {
+        @WebInitParam(name = "principle",    value = "0"),
+        @WebInitParam(name = "amortization", value = "1"),
+        @WebInitParam(name = "interest",     value = "0.01")
+    }
 )
 public class StartService extends HttpServlet {
 
@@ -18,6 +18,10 @@ public class StartService extends HttpServlet {
 
   public StartService() {
     super();
+  }
+  
+  public void init(ServletConfig config) throws ServletException {
+    super.init(config);
   }
 
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -45,7 +49,7 @@ public class StartService extends HttpServlet {
     theNetworkingLayer(request, response, res);
     theHTTPLayer(request, res);
     theURL(request, response, res);
-
+    
     if (response.isCommitted()) return;
 
     theComputation(request, res);
@@ -138,10 +142,10 @@ public class StartService extends HttpServlet {
 
     if ((request.getContextPath() + "/Startup/YorkBank").equals(request.getRequestURI())) {
       response.sendRedirect(request.getContextPath() + "/Start");
-    } else {
-      res.println();
     }
 
+    res.println();
+    
   } // theURL
 
   private void theComputation(HttpServletRequest request, PrintWriter res) {
@@ -177,16 +181,14 @@ public class StartService extends HttpServlet {
       ? Double.parseDouble(request.getParameter("principle"))
       : (session.getAttribute("principle") != null
         ? (double)session.getAttribute("principle")
-        : Double.parseDouble(getInitParameter("principle")
-        )
+        : Double.parseDouble(getInitParameter("principle"))
       );
 
     double amortization = request.getParameter("amortization") != null
       ? Double.parseDouble(request.getParameter("amortization"))
       : (session.getAttribute("amortization") != null
         ? (double)session.getAttribute("amortization")
-        : Double.parseDouble(getInitParameter("amortization")
-        )
+        : Double.parseDouble(getInitParameter("amortization"))
       );
 
     double interest = Double.parseDouble(request.getParameter("interest") != null
