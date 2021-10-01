@@ -54,6 +54,9 @@ public class StartService extends HttpServlet {
         theNetworkingLayer(request, response, res);
         theHTTPLayer(request, res);
         theURL(request, response, res);
+
+        if (response.isCommitted()) return;
+
         theComputation(request, res);
 
     } // doGet
@@ -142,8 +145,8 @@ public class StartService extends HttpServlet {
         // to redirect to Start. Hint: use the sendRedirect
         // method of the response object.
 
-        if ((request.getContextPath() + "/Module_B/Startup/YorkBank").equals(request.getRequestURI())) {
-            response.sendRedirect(request.getContextPath() + "/Module_B/Start");
+        if ((request.getContextPath() + "/Startup/YorkBank").equals(request.getRequestURI())) {
+            response.sendRedirect(request.getContextPath() + "/Start");
         }
 
         res.println();
