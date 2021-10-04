@@ -3,6 +3,7 @@
 - [HTTP Server Refactoring Example](#http-server-refactoring-example)
   - [Other Servlets](#other-servlets)
     - [From the Lab](#from-the-lab)
+  - [RESTful Products API Example](#restful-products-api-example)
   - [Miscellaneous](#miscellaneous)
   - [Common Gateway Interface](#common-gateway-interface)
     - [Bash Scripts:](#bash-scripts)
@@ -47,6 +48,18 @@ The associated model classes:
 - [VendorIDtoNamesService](src/services/VendorIDtoNamesService.java): Demostrates the `session`, uses a TCP service via model (engine) class.
   - [VendorIDtoNameTCPService](src/services/VendorIDtoNameTCPService.java): The TCP service.
   - [VendorsEngine](src/model/VendorsEngine.java): The model class (engine).
+
+-----
+## RESTful Products API Example
+
+- [ProductsAPIService](src/api/services/ProductsAPIService.java) -- [The Products API](src/api/README.md)
+  - [Product](src/api/model/Product.java),              model class for representing a record in the `Product` table in the database.
+  - [Products](src/api/model/Products.java),            model class for a collection of `Product` objects.
+  - [ProductFilter](src/api/model/ProductFilter.java),  model class for storing parameters for the search filter.
+  - [ProductsDAO](src/api/model/ProductsDAO.java),      database access object for CRUD operations into the database.
+  - [APIRequest](src/api/model/APIRequest.java),        class to check and parse the JSON request bodies into `Product` and `Products`.
+  - [APIResponse](src/api/model/APIResponse.java),      class to form well-structured JSON responses.
+  - [context.xml](WebContent/META-INF/context.xml),     database configurations
 
 -----
 ## Miscellaneous
