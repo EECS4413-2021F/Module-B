@@ -77,6 +77,14 @@ public class ProductsDAO {
     vendors    = getVendors();
   }
 
+  /**
+   * Retrieve all of the Categories from the database.
+   * Returns a Map with the Category names mapped to Category ID.
+   * This is for reverse lookup for INSERT and UPDATE SQL queries.
+   * 
+   * @return
+   * @throws SQLException
+   */
   private Map<String, Integer> getCategories() throws SQLException {
     Map<String, Integer> categories = new HashMap<>();
     try (Connection con = datasource.getConnection()) {
@@ -88,6 +96,14 @@ public class ProductsDAO {
     return categories;
   }
 
+  /**
+   * Retrieve all of the Vendors from the database.
+   * Returns a Map with the Vendor names mapped to Vendor ID.
+   * This is for reverse lookup for INSERT and UPDATE SQL queries.
+   * 
+   * @return
+   * @throws SQLException
+   */
   private Map<String, Integer> getVendors() throws SQLException {
     Map<String, Integer> vendors = new HashMap<>();
     try (Connection con = datasource.getConnection()) {
@@ -99,6 +115,14 @@ public class ProductsDAO {
     return vendors;
   }
 
+  /**
+   * Return a Product object populated by the ResultSet from a
+   * database query.
+   * 
+   * @param rs
+   * @return
+   * @throws SQLException
+   */
   private Product getProduct(ResultSet rs) throws SQLException {
     Product product = new Product();
     product.setId(rs.getString("id"));
@@ -112,6 +136,14 @@ public class ProductsDAO {
     return product;
   }
 
+  /**
+   * Retrieve a Product from the database with the specified Product ID.
+   * If none found, return null.
+   * 
+   * @param id
+   * @return
+   * @throws SQLException
+   */
   public Product getProductById(String id) throws SQLException {
     try (Connection con = datasource.getConnection()) {
       PreparedStatement ps = con.prepareStatement(ALL_PRODUCTS + PRODUCTS_GET_BY_ID);
@@ -125,9 +157,18 @@ public class ProductsDAO {
     return null;
   }
 
+  /**
+   * Retrieves a collection of Product objects from the database
+   * with the given ProductFilter. The ProductFilter generates the
+   * SQL query and prepares it.
+   * 
+   * @param filter
+   * @return
+   * @throws SQLException
+   */
   public Products getProducts(ProductFilter filter) throws SQLException {
     try (Connection con = datasource.getConnection()) {
-      PreparedStatement ps = con.prepareStatement(filter.toString());
+      PreparedStatement ps = con.prepareStatement(filter.toSQL());
       filter.prepare(ps);
      
       Products products = new Products();
@@ -140,6 +181,12 @@ public class ProductsDAO {
     }
   }
 
+  /**
+   * Add the given Product to the database.
+   * 
+   * @param product
+   * @throws SQLException
+   */
   public void addProduct(Product product) throws SQLException {
     if (getProductById(product.getId()) != null) // already exists
       throw new RuntimeException(PRODUCT_ALREADY_EXISTS  + product.getId());
@@ -164,6 +211,15 @@ public class ProductsDAO {
     }
   }
 
+  /**
+   * Update the given Product in the database. If no ID is given,
+   * use the Product ID in the object. If that is null and no ID is given
+   * or the given ID and Product object's ID don't match, throw
+   * RuntimeExceptions.
+   * 
+   * @param product
+   * @throws SQLException
+   */
   public void updateProduct(Product product) throws SQLException { updateProduct(product, null); }
   public void updateProduct(Product product, String id) throws SQLException {
     if (id == null && product.getId() == null) // no product ID given
@@ -181,6 +237,8 @@ public class ProductsDAO {
     
     List<String> assigns = new ArrayList<>(); 
 
+    // Based on what fields have values, add these fields to be set in the update query. 
+    
     if (product.getName()        != null) assigns.add("name = ?");
     if (product.getDescription() != null) assigns.add("description = ?");
     if (product.getCategory()    != null) assigns.add("catId = ?");
@@ -209,6 +267,12 @@ public class ProductsDAO {
     }
   }
   
+  /**
+   * Delete the Product with the given ID.
+   * 
+   * @param id
+   * @throws SQLException
+   */
   public void deleteProduct(String id) throws SQLException {
     if (getProductById(id) == null) // does not exist
       throw new RuntimeException(PRODUCT_DOES_NOT_EXIST + id);

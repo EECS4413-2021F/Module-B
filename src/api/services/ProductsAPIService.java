@@ -27,8 +27,10 @@ import api.model.ProductsDAO;
 @WebServlet(
   name = "Products",
   urlPatterns = {
-    "/products", 
-    "/product/*"
+    "/products",
+    "/product/*",
+    "/v1/products",   // We should version our RESTful APIs.
+    "/v1/product/*"   // This is version 1.
   }
 )
 public class ProductsAPIService extends HttpServlet {
@@ -53,11 +55,12 @@ public class ProductsAPIService extends HttpServlet {
 	{
 	  setRequestID(request);
 
-	  if (request.getRequestURI().startsWith(request.getContextPath() + "/product/") && 
-	      request.getPathInfo().length() > 1) {
-	    doGetOne(request, response);
+	  if ((request.getRequestURI().startsWith(request.getContextPath() + "/product/") || 
+	       request.getRequestURI().startsWith(request.getContextPath() + "/v1/product/")) &&
+	       request.getPathInfo().length() > 1) {
+	    doGetOne(request, response);   // GET /product/<id>
 	  } else {
-	    doGetMany(request, response);
+	    doGetMany(request, response);  // GET /products
 	  }
 	}
 
@@ -65,6 +68,11 @@ public class ProductsAPIService extends HttpServlet {
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
+	  // Strictly speaking POST is not a RESTful operation.
+	  // However, we can use it to clearly distinguish between PUT (create) requests
+	  // and PUT (update) request. All POST requests are treated as
+	  // update requests.
+
 	  doPut(request, response);
   }
 
@@ -74,11 +82,12 @@ public class ProductsAPIService extends HttpServlet {
   {
     setRequestID(request);
     
-    if (request.getRequestURI().startsWith(request.getContextPath() + "/product/") && 
-        request.getPathInfo().length() > 1) {
-      doPutOne(request, response);
+    if ((request.getRequestURI().startsWith(request.getContextPath() + "/product/") ||
+         request.getRequestURI().startsWith(request.getContextPath() + "/v1/product/")) &&
+         request.getPathInfo().length() > 1) {
+      doPutOne(request, response);  // PUT /product/<id>
     } else {
-      doPutMany(request, response);
+      doPutMany(request, response); // PUT /products
     }
   }
 
@@ -88,15 +97,28 @@ public class ProductsAPIService extends HttpServlet {
   {
     setRequestID(request);
 
-    if (request.getRequestURI().startsWith(request.getContextPath() + "/product/") && 
-        request.getPathInfo().length() > 1) {
-      doDeleteOne(request, response);
+    // We only support deleting one Product at a time, but we could
+    // have supported deleting Products in batch.
+    // Maybe in a future version.
+
+    if ((request.getRequestURI().startsWith(request.getContextPath() + "/product/") ||
+         request.getRequestURI().startsWith(request.getContextPath() + "/v1/product/")) &&
+         request.getPathInfo().length() > 1) {
+      doDeleteOne(request, response); // DELETE /product/<id>
     }
   }
-  
+
 
   /// Helpers
   
+  /**
+   * Increment a request counter for each session.
+   * We return this request ID in each response, so a client
+   * can keep track of the ordering of its requests and the
+   * corresponding responses.
+   *
+   * @param request
+   */
   private void setRequestID(HttpServletRequest request) {
     HttpSession session = request.getSession(true);  
     if (session.getAttribute("rid") == null) session.setAttribute("rid", 0);
@@ -106,6 +128,15 @@ public class ProductsAPIService extends HttpServlet {
 
   /// Handlers
 
+  /**
+   * Retrieve a single Product object with its given ID
+   * specified within its URL: /product/<id>.
+   * 
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
+   */
   protected void doGetOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
@@ -127,6 +158,19 @@ public class ProductsAPIService extends HttpServlet {
     }
   }
 
+  /**
+   * Retrieve multiple Products all at once. Filters the results
+   * with the given query parameters. Can chains multiple request together
+   * if chain query parameter is set. Allows an end-user client to drill-down
+   * on a particular subset of results. Of course, a client could do the 
+   * filter themselves in the browser, but we can provide that same mechanism
+   * on the server-side.
+   *
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
+   */
   protected void doGetMany(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
@@ -158,6 +202,26 @@ public class ProductsAPIService extends HttpServlet {
     }
   }
 
+  /**
+   * Create or update a single or multiple Product objects.
+   * Takes a request of a Product object, an array of Products, or
+   * a Products object containing an array of Products. Supports
+   * both creating new Products, requiring all fields be provided,
+   * or updating existing Products, with a selected sets of fields
+   * provided. Support both PUT and POST requests. POST is strictly
+   * for updates and PUT is by default for creation. PUT can be
+   * switched to update existing Products with the "update" query
+   * parameter set.
+   * 
+   *    PUT /products               - Create new Products
+   *    PUT /products?update=true   - Update existing Products
+   *    POST /products              - Same as: PUT /products?update=true
+   *
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
+   */
   protected void doPutMany(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
@@ -167,6 +231,13 @@ public class ProductsAPIService extends HttpServlet {
     ProductsDAO dao   = (ProductsDAO)sc.getAttribute("ProductsDAO");
 
     boolean update = "true".equals(request.getParameter("update"));
+
+    // We support POST methods. While not strictly RESTful,
+    // it is useful for distinguishing between a creation request
+    // and an update request. POST is strictly for updates.
+    if ("POST".equals(request.getMethod())) {
+      update = true;
+    }
 
     try {
       JsonElement json = req.getRequestBody(request);
@@ -216,6 +287,15 @@ public class ProductsAPIService extends HttpServlet {
     }
   }
 
+  /**
+   * Update the values of a single Product with its specified
+   * Product ID within the URL: /product/<id>.
+   * 
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
+   */
   protected void doPutOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
@@ -228,7 +308,7 @@ public class ProductsAPIService extends HttpServlet {
     try {
       JsonElement json = req.getRequestBody(request);
 
-      if (req.isProduct(json, true)) {
+      if (req.isProduct(json, true)) { // Fuzzy match. Can be a Product or Product-like.
         Product product = req.getProductFromJson(json, true);
         dao.updateProduct(product, pid);
         res.serializeUpdateOne(dao.getProductById(pid));
@@ -251,6 +331,15 @@ public class ProductsAPIService extends HttpServlet {
     }
   }
 
+  /**
+   * Delete the specified Product with the given ID within the
+   * request URL: DELETE /product/<id>.
+   * 
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
+   */
   protected void doDeleteOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {   

@@ -80,10 +80,24 @@ public class ProductFilter extends Product {
     );
   }
 
+  /**
+   * Helper function. If the query parameter is present but it's
+   * an empty value, set the field to null (i.e. remove the filter).
+   * 
+   * @param params
+   * @param key
+   * @return
+   */
   private String getParam(Map<String, String[]> params, String key) {
     return params.get(key)[0].isEmpty() ? null : params.get(key)[0];
   }
 
+  /**
+   * Populate the values of this ProductFilter object with
+   * the query parameters from the HTTP request.
+   * 
+   * @param params
+   */
   public void populate(Map<String, String[]> params) {
     if (params.containsKey("id"))          setId(getParam(params, "id"));
     if (params.containsKey("name"))        setName(getParam(params, "name"));
@@ -103,9 +117,15 @@ public class ProductFilter extends Product {
                                                 || "false".equals(params.get("reversed")[0]));
   }
 
+  /**
+   * Prepare the given PreparedStatement.
+   * 
+   * @param ps
+   * @throws SQLException
+   */
   public void prepare(PreparedStatement ps) throws SQLException {
     int i = 0;
-    
+
     if (getId()          != null) ps.setString(++i, getId());
     if (getName()        != null) ps.setString(++i, "%" + getName() + "%");
     if (getDescription() != null) ps.setString(++i, "%" + getDescription() + "%");
@@ -122,7 +142,17 @@ public class ProductFilter extends Product {
     if (getOffset()      >= 0)    ps.setInt(++i, getOffset());
   }
 
-  public String toString() {
+  /**
+   * Return a SQL prepared statement for this object.
+   * Depending on which fields have been set, returns the query
+   * with those parameters added. This method should be paired
+   * with the prepare method which sets the values with the
+   * prepared statement.
+   * 
+   * @return  SQL query for the prepared statement to perform
+   *          this filter on the Products.
+   */  
+  public String toSQL() {
     return ProductsDAO.ALL_PRODUCTS
       + (getId()          == null ? "" : ProductsDAO.PRODUCTS_GET_BY_ID)
       + (getName()        == null ? "" : ProductsDAO.PRODUCTS_GET_BY_NAME)
@@ -140,7 +170,12 @@ public class ProductFilter extends Product {
       + (getOffset()      <  0    ? "" : ProductsDAO.PRODUCTS_PAGINATION_OFFSET))
       ;
   }
-  
+
+  /**
+   * Serialize this ProductFilter object as JSON.
+   * 
+   * @return JSON representation.
+   */
   public JsonObject toJson() {
     JsonObject obj = new JsonObject();
   
