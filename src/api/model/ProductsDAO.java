@@ -14,6 +14,8 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.sqlite.SQLiteException;
+
 
 public class ProductsDAO {
 
@@ -38,7 +40,7 @@ public class ProductsDAO {
     , PRODUCTS_GET_BY_MAXCOST     = "AND P.cost <= ? "
     , PRODUCTS_GET_BY_MAXMSRP     = "AND P.msrp <= ? "
     , PRODUCTS_GET_BY_MAXQUANTITY = "AND P.qty  <= ? "
-    , PRODUCTS_ORDER_BY           = "ORDER BY ? ? " // (id|name|c.name|v.name|qnty|cost|msrp) (asc|desc) 
+    , PRODUCTS_ORDER_BY           = "ORDER BY %s %s " // (id|name|c.name|v.name|qnty|cost|msrp) (asc|desc) 
     , PRODUCTS_PAGINATION_LIMIT   = "LIMIT ? "
     , PRODUCTS_PAGINATION_OFFSET  = "OFFSET ? "
     
@@ -56,6 +58,7 @@ public class ProductsDAO {
     , PRODUCT_ID_MISSING      = "No product ID given, none in body nor in request URL."
     , CATEGORY_DOES_NOT_EXIST = "No category exists with the given name: "
     , VENDOR_DOES_NOT_EXIST   = "No vendor exists with the given name: "
+    , SQL_SYNTAX_ERROR        = "Syntax Error in SQL: "
     ;
 
   private final DataSource datasource;
@@ -170,7 +173,7 @@ public class ProductsDAO {
     try (Connection con = datasource.getConnection()) {
       PreparedStatement ps = con.prepareStatement(filter.toSQL());
       filter.prepare(ps);
-     
+
       Products products = new Products();
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -178,6 +181,8 @@ public class ProductsDAO {
         }
       }
       return products;
+    } catch (SQLiteException e) {
+      throw new SQLException(SQL_SYNTAX_ERROR + filter.toPreparedSQL(), e);
     }
   }
 

@@ -118,6 +118,26 @@ public class ProductFilter extends Product {
   }
 
   /**
+   * Populate the values of this ProductFilter object with
+   * the values from the other ProductFilter object.
+   * 
+   * @param other
+   */
+  public void populate(ProductFilter other) {
+    if (other.getId()          != null) setId(other.getId());
+    if (other.getName()        != null) setName(other.getName());
+    if (other.getDescription() != null) setDescription(other.getDescription());
+    if (other.getCategory()    != null) setCategory(other.getCategory());
+    if (other.getVendor()      != null) setVendor(other.getVendor());
+    if (other.getMinCost()     >= 0)    setMinCost(other.getMinCost());
+    if (other.getMaxCost()     >= 0)    setMaxCost(other.getMaxCost());
+    if (other.getMinMSRP()     >= 0)    setMinMSRP(other.getMinMSRP());
+    if (other.getMaxMSRP()     >= 0)    setMaxMSRP(other.getMaxMSRP());
+    if (other.getMinQuantity() >= 0)    setMinQuantity(other.getMinQuantity());
+    if (other.getMaxQuantity() >= 0)    setMaxQuantity(other.getMaxQuantity());
+  }
+
+  /**
    * Prepare the given PreparedStatement.
    * 
    * @param ps
@@ -137,7 +157,6 @@ public class ProductFilter extends Product {
     if (getMaxMSRP()     >= 0)    ps.setDouble(++i, getMaxMSRP());
     if (getMinQuantity() >= 0)    ps.setInt(++i, getMinQuantity());
     if (getMaxQuantity() >= 0)    ps.setInt(++i, getMaxQuantity());
-    if (getOrderBy()     != null) { ps.setString(++i, getOrderBy()); ps.setString(++i, isAscending() ? "ASC" : "DESC"); }
     if (getLimit()       >= 0)    ps.setInt(++i, getLimit());
     if (getOffset()      >= 0)    ps.setInt(++i, getOffset());
   }
@@ -165,10 +184,38 @@ public class ProductFilter extends Product {
       + (getMaxMSRP()     <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MAXMSRP)
       + (getMinQuantity() <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MINQUANTITY)
       + (getMaxQuantity() <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MAXQUANTITY)
-      + (getOrderBy()     == null ? "" : ProductsDAO.PRODUCTS_ORDER_BY)
+      + (getOrderBy()     == null ? "" : String.format(ProductsDAO.PRODUCTS_ORDER_BY, getOrderBy(), isAscending() ? "ASC" : "DESC"))
       + (getLimit()       <  0    ? "" : ProductsDAO.PRODUCTS_PAGINATION_LIMIT//) offset requires limit
       + (getOffset()      <  0    ? "" : ProductsDAO.PRODUCTS_PAGINATION_OFFSET))
       ;
+  }
+
+  /**
+   * For debugging purpose only. Prepare the given SQL manually.
+   * 
+   * @param ps
+   * @throws SQLException
+   */
+  public String toPreparedSQL() {
+    String sql = toSQL();
+
+    if (getId()          != null) sql = sql.replaceFirst("\\?", "'"  + getId() + "'");
+    if (getName()        != null) sql = sql.replaceFirst("\\?", "'%" + getName() + "%'");
+    if (getDescription() != null) sql = sql.replaceFirst("\\?", "'%" + getDescription() + "%'");
+    if (getCategory()    != null) sql = sql.replaceFirst("\\?", "'%" + getCategory() + "%'");
+    if (getVendor()      != null) sql = sql.replaceFirst("\\?", "'%" + getVendor() + "%'");
+    if (getMinCost()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMinCost());
+    if (getMaxCost()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxCost());
+    if (getMinMSRP()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMinMSRP());
+    if (getMaxMSRP()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxMSRP());
+    if (getMinQuantity() >= 0)    sql = sql.replaceFirst("\\?", "" + getMinQuantity());
+    if (getMaxQuantity() >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxQuantity());
+    if (getOrderBy()   != null) { sql = sql.replaceFirst("\\?", getOrderBy()); 
+                                  sql = sql.replaceFirst("\\?", isAscending() ? "ASC" : "DESC"); }
+    if (getLimit()       >= 0)    sql = sql.replaceFirst("\\?", "" + getLimit());
+    if (getOffset()      >= 0)    sql = sql.replaceFirst("\\?", "" + getOffset());
+
+    return sql;
   }
 
   /**

@@ -1,4 +1,31 @@
-# RESTful Products API
+# RESTful Example Store API
+
+- [Products API](#products-api)
+  - [GET /products](#get-products)
+  - [GET /v1/products](#get-v1products)
+  - [GET /product/&lt;id&gt;](#get-productid)
+  - [GET /v1/product/&lt;id&gt;](#get-v1productid)
+  - [PUT /products](#put-products)
+  - [PUT /v1/products](#put-v1products)
+  - [POST /products](#post-products)
+  - [POST /v1/products](#post-v1products)
+  - [PUT  /product/&lt;id&gt;](#put--productid)
+  - [PUT  /v1/product/&lt;id&gt;](#put--v1productid)
+  - [POST /product/&lt;id&gt;](#post-productid)
+  - [POST /v1/product/&lt;id&gt;](#post-v1productid)
+  - [DELETE /product/&lt;id&gt;](#delete-productid)
+  - [DELETE /v1/product/&lt;id&gt;](#delete-v1productid)
+  - [Exceptions](#exceptions)
+- [Cart API](#cart-api)
+  - [GET /cart](#get-cart)
+  - [GET /v1/cart](#get-v1cart)
+  - [POST /cart/add](#post-cartadd)
+  - [POST /v1/cart/add](#post-v1cartadd)
+  - [POST /cart/remove](#post-cartremove)
+  - [POST /v1/cart/remove](#post-v1cartremove)
+
+-----
+## Products API
 
 ### `GET /products`
 ### `GET /v1/products`
@@ -23,6 +50,12 @@ parameters to filter our results. The available filters are:
 | `reversed`    | Sort in reverse order. Default: `false`.
 | `limit`       | Limit the number of results returned for pagination.
 | `offset`      | Offset to the start result for a paginated result.
+
+Additional fields:
+
+| Field         | Description
+|---------------|-----------------------------------------
+| `chain`       | If provided, filter using the previous request, in addition to the newly given parameters.
 
 Sample Response: `GET /v1/products`
 
@@ -310,6 +343,139 @@ Sample Exception:
       ...
     ],
     "suppressedExceptions": []
+  }
+}
+```
+
+-----
+## Cart API
+
+### `GET /cart`
+### `GET /v1/cart`
+
+Retrieve a list of all Products within the shopping cart.
+
+Sample Response: `GET /v1/cart`
+
+```json
+{
+  "version": "1.0",
+  "rid": 5,
+  "method": "GET",
+  "uri": "/Module_B/v1/cart",
+  "length": 2,
+  "cart": {
+    "products": [
+      {
+        "id": "S10_1678",
+        "name": "1969 Harley Davidson Ultimate Chopper",
+        "description": "This replica features working kickstand, front suspension, gear-shift lever, footbrake lever, drive chain, wheels and steering. All parts are particularly delicate due to their precise scale and require special care and attention.",
+        "category": "Motorcycles",
+        "vendor": "Min Lin Diecast",
+        "quantity": 7933,
+        "cost": 48.81,
+        "msrp": 95.7
+      },
+      {
+        "id": "S10_2016",
+        "name": "1996 Moto Guzzi 1100i",
+        "description": "Official Moto Guzzi logos and insignias, saddle bags located on side of motorcycle, detailed engine, working steering, working suspension, two leather seats, luggage rack, dual exhaust pipes, small saddle bag located on handle bars, two-tone paint with chrome accents, superior die-cast detail , rotating wheels , working kick stand, diecast metal with plastic parts and baked enamel finish.",
+        "category": "Motorcycles",
+        "vendor": "Highway 66 Mini Classics",
+        "quantity": 6625,
+        "cost": 68.99,
+        "msrp": 118.94
+      }
+    ]
+  }
+}
+```
+
+### `POST /cart/add`
+### `POST /v1/cart/add`
+
+Add all of the items to the cart that match the given search filter.
+
+| Field         | Description
+|---------------|-----------------------------------------
+| `chain`       | If provided, add the products that match the previous request's filter.
+| `addAll`      | Flag to permit adding all of the products in the store into the shopping cart.
+
+Sample request: `POST /v1/cart/add`
+
+```json
+{"id": "S10_2016"}
+```
+
+Sample response: `POST /v1/cart/add`
+
+```json
+{
+  "version": "1.0",
+  "rid": 7,
+  "method": "POST",
+  "uri": "/Module_B/v1/cart/add",
+  "length": 1,
+  "search": {
+    "id": "S10_2016"
+  },
+  "added": {
+    "products": [
+      {
+        "id": "S10_2016",
+        "name": "1996 Moto Guzzi 1100i",
+        "description": "Official Moto Guzzi logos and insignias, saddle bags located on side of motorcycle, detailed engine, working steering, working suspension, two leather seats, luggage rack, dual exhaust pipes, small saddle bag located on handle bars, two-tone paint with chrome accents, superior die-cast detail , rotating wheels , working kick stand, diecast metal with plastic parts and baked enamel finish.",
+        "category": "Motorcycles",
+        "vendor": "Highway 66 Mini Classics",
+        "quantity": 6625,
+        "cost": 68.99,
+        "msrp": 118.94
+      }
+    ]
+  }
+}
+```
+
+### `POST /cart/remove`
+### `POST /v1/cart/remove`
+
+Remove all of the items to the cart that match the given search filter.
+
+| Field         | Description
+|---------------|-----------------------------------------
+| `chain`       | If provided, remove the products that match the previous request's filter.
+
+Sample request: `POST /v1/cart/remove`
+
+```json
+{"id": "S10_1678"}
+```
+
+Sample response: `POST /v1/cart/remove`
+
+```json
+{
+  "version": "1.0",
+  "rid": 8,
+  "method": "POST",
+  "uri": "/Module_B/v1/cart/remove",
+  "length": 1,
+  "search": {
+    "id": "S10_1678"
+  },
+  "removed": {
+    "products": [
+      {
+        "id": "S10_1678",
+        "name": "1969 Harley Davidson Ultimate Chopper",
+        "description": "This replica features working kickstand, front suspension, gear-shift lever, footbrake lever, drive chain, wheels and steering. All parts are particularly delicate due to their precise scale and require special care and attention.",
+        "category": "Motorcycles",
+        "vendor": "Min Lin Diecast",
+        "quantity": 7933,
+        "cost": 48.81,
+        "msrp": 95.7
+      }
+    ]
   }
 }
 ```

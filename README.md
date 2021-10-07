@@ -4,6 +4,7 @@
   - [Other Servlets](#other-servlets)
     - [From the Lab](#from-the-lab)
   - [RESTful Products API Example](#restful-products-api-example)
+    - [From the Lab](#from-the-lab-1)
   - [Miscellaneous](#miscellaneous)
   - [Common Gateway Interface](#common-gateway-interface)
     - [Bash Scripts:](#bash-scripts)
@@ -52,14 +53,35 @@ The associated model classes:
 -----
 ## RESTful Products API Example
 
-- [ProductsAPIService](src/api/services/ProductsAPIService.java) -- [The Products API](src/api/README.md)
-  - [Product](src/api/model/Product.java),              model class for representing a record in the `Product` table in the database.
-  - [Products](src/api/model/Products.java),            model class for a collection of `Product` objects.
-  - [ProductFilter](src/api/model/ProductFilter.java),  model class for storing parameters for the search filter.
-  - [ProductsDAO](src/api/model/ProductsDAO.java),      database access object for CRUD operations into the database.
-  - [APIRequest](src/api/model/APIRequest.java),        class to check and parse the JSON request bodies into `Product` and `Products`.
-  - [APIResponse](src/api/model/APIResponse.java),      class to form well-structured JSON responses.
-  - [context.xml](WebContent/META-INF/context.xml),     database configurations
+- [ProductsAPIService](src/api/services/ProductsAPIService.java): [The Products API](src/api/README.md#products-api)
+  - [Product](src/api/model/Product.java):
+    Model class for representing a record in the `Product` table in the database.
+  - [Products](src/api/model/Products.java):
+    Model class for a collection of `Product` objects.
+  - [ProductFilter](src/api/model/ProductFilter.java):
+    Model class for storing parameters for the search filter.
+  - [ProductsDAO](src/api/model/ProductsDAO.java):
+    Database access object for CRUD operations into the database.
+  - [ProductsAPIRequest](src/api/model/ProductsAPIRequest.java):
+    Class to check and parse the JSON request bodies into `Product` and `Products`.
+  - [ProductsAPIResponse](src/api/model/ProductsAPIResponse.java):
+    Class to form well-structured JSON responses specific to the Products API.
+
+#### From the Lab
+
+- [CartAPIService](src/api/services/CartAPIService.java): [The Cart API](src/api/README.md#cart-api)
+  - [CartAPIRequest](src/api/model/CartAPIRequest.java):
+    Class to check and parse the JSON request bodies into `ProductFilter` objects.
+  - [CartAPIResponse](src/api/model/CartAPIResponse.java):
+    Class to form well-structured JSON responses specific to the Cart API.
+
+- Shared:
+  - [APIRequest](src/api/model/APIRequest.java):
+    Class to deserialize the HTTP Request body as JSON.
+  - [APIResponse](src/api/model/APIResponse.java):
+    Class to form well-structured JSON responses.
+  - [context.xml](WebContent/META-INF/context.xml):
+    Database configurations
 
 -----
 ## Miscellaneous

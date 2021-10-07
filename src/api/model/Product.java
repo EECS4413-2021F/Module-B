@@ -1,6 +1,7 @@
 package api.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -55,4 +56,12 @@ public class Product implements Serializable {
     this.cost = cost; }
   public void setMSRP(double msrp) {
     this.msrp = msrp; }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) return true;
+    if (other == null) return false;
+    if (!(other instanceof Product)) return false;
+    return Objects.equals(getId(), ((Product)other).getId());
+  }  
 }
