@@ -80,10 +80,24 @@ public class ProductFilter extends Product {
     );
   }
 
+  /**
+   * Helper function. If the query parameter is present but it's
+   * an empty value, set the field to null (i.e. remove the filter).
+   * 
+   * @param params
+   * @param key
+   * @return
+   */
   private String getParam(Map<String, String[]> params, String key) {
     return params.get(key)[0].isEmpty() ? null : params.get(key)[0];
   }
 
+  /**
+   * Populate the values of this ProductFilter object with
+   * the query parameters from the HTTP request.
+   * 
+   * @param params
+   */
   public void populate(Map<String, String[]> params) {
     if (params.containsKey("id"))          setId(getParam(params, "id"));
     if (params.containsKey("name"))        setName(getParam(params, "name"));
@@ -103,9 +117,35 @@ public class ProductFilter extends Product {
                                                 || "false".equals(params.get("reversed")[0]));
   }
 
+  /**
+   * Populate the values of this ProductFilter object with
+   * the values from the other ProductFilter object.
+   * 
+   * @param other
+   */
+  public void populate(ProductFilter other) {
+    if (other.getId()          != null) setId(other.getId());
+    if (other.getName()        != null) setName(other.getName());
+    if (other.getDescription() != null) setDescription(other.getDescription());
+    if (other.getCategory()    != null) setCategory(other.getCategory());
+    if (other.getVendor()      != null) setVendor(other.getVendor());
+    if (other.getMinCost()     >= 0)    setMinCost(other.getMinCost());
+    if (other.getMaxCost()     >= 0)    setMaxCost(other.getMaxCost());
+    if (other.getMinMSRP()     >= 0)    setMinMSRP(other.getMinMSRP());
+    if (other.getMaxMSRP()     >= 0)    setMaxMSRP(other.getMaxMSRP());
+    if (other.getMinQuantity() >= 0)    setMinQuantity(other.getMinQuantity());
+    if (other.getMaxQuantity() >= 0)    setMaxQuantity(other.getMaxQuantity());
+  }
+
+  /**
+   * Prepare the given PreparedStatement.
+   * 
+   * @param ps
+   * @throws SQLException
+   */
   public void prepare(PreparedStatement ps) throws SQLException {
     int i = 0;
-    
+
     if (getId()          != null) ps.setString(++i, getId());
     if (getName()        != null) ps.setString(++i, "%" + getName() + "%");
     if (getDescription() != null) ps.setString(++i, "%" + getDescription() + "%");
@@ -117,12 +157,21 @@ public class ProductFilter extends Product {
     if (getMaxMSRP()     >= 0)    ps.setDouble(++i, getMaxMSRP());
     if (getMinQuantity() >= 0)    ps.setInt(++i, getMinQuantity());
     if (getMaxQuantity() >= 0)    ps.setInt(++i, getMaxQuantity());
-    if (getOrderBy()     != null) { ps.setString(++i, getOrderBy()); ps.setString(++i, isAscending() ? "ASC" : "DESC"); }
     if (getLimit()       >= 0)    ps.setInt(++i, getLimit());
     if (getOffset()      >= 0)    ps.setInt(++i, getOffset());
   }
 
-  public String toString() {
+  /**
+   * Return a SQL prepared statement for this object.
+   * Depending on which fields have been set, returns the query
+   * with those parameters added. This method should be paired
+   * with the prepare method which sets the values with the
+   * prepared statement.
+   * 
+   * @return  SQL query for the prepared statement to perform
+   *          this filter on the Products.
+   */  
+  public String toSQL() {
     return ProductsDAO.ALL_PRODUCTS
       + (getId()          == null ? "" : ProductsDAO.PRODUCTS_GET_BY_ID)
       + (getName()        == null ? "" : ProductsDAO.PRODUCTS_GET_BY_NAME)
@@ -135,12 +184,45 @@ public class ProductFilter extends Product {
       + (getMaxMSRP()     <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MAXMSRP)
       + (getMinQuantity() <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MINQUANTITY)
       + (getMaxQuantity() <  0    ? "" : ProductsDAO.PRODUCTS_GET_BY_MAXQUANTITY)
-      + (getOrderBy()     == null ? "" : ProductsDAO.PRODUCTS_ORDER_BY)
+      + (getOrderBy()     == null ? "" : String.format(ProductsDAO.PRODUCTS_ORDER_BY, getOrderBy(), isAscending() ? "ASC" : "DESC"))
       + (getLimit()       <  0    ? "" : ProductsDAO.PRODUCTS_PAGINATION_LIMIT//) offset requires limit
       + (getOffset()      <  0    ? "" : ProductsDAO.PRODUCTS_PAGINATION_OFFSET))
       ;
   }
-  
+
+  /**
+   * For debugging purpose only. Prepare the given SQL manually.
+   * 
+   * @param ps
+   * @throws SQLException
+   */
+  public String toPreparedSQL() {
+    String sql = toSQL();
+
+    if (getId()          != null) sql = sql.replaceFirst("\\?", "'"  + getId() + "'");
+    if (getName()        != null) sql = sql.replaceFirst("\\?", "'%" + getName() + "%'");
+    if (getDescription() != null) sql = sql.replaceFirst("\\?", "'%" + getDescription() + "%'");
+    if (getCategory()    != null) sql = sql.replaceFirst("\\?", "'%" + getCategory() + "%'");
+    if (getVendor()      != null) sql = sql.replaceFirst("\\?", "'%" + getVendor() + "%'");
+    if (getMinCost()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMinCost());
+    if (getMaxCost()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxCost());
+    if (getMinMSRP()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMinMSRP());
+    if (getMaxMSRP()     >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxMSRP());
+    if (getMinQuantity() >= 0)    sql = sql.replaceFirst("\\?", "" + getMinQuantity());
+    if (getMaxQuantity() >= 0)    sql = sql.replaceFirst("\\?", "" + getMaxQuantity());
+    if (getOrderBy()   != null) { sql = sql.replaceFirst("\\?", getOrderBy()); 
+                                  sql = sql.replaceFirst("\\?", isAscending() ? "ASC" : "DESC"); }
+    if (getLimit()       >= 0)    sql = sql.replaceFirst("\\?", "" + getLimit());
+    if (getOffset()      >= 0)    sql = sql.replaceFirst("\\?", "" + getOffset());
+
+    return sql;
+  }
+
+  /**
+   * Serialize this ProductFilter object as JSON.
+   * 
+   * @return JSON representation.
+   */
   public JsonObject toJson() {
     JsonObject obj = new JsonObject();
   
