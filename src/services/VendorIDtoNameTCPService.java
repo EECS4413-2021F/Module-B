@@ -71,7 +71,7 @@ public class VendorIDtoNameTCPService extends Thread {
 	public static void main(String[] args) throws Exception {
 		int port = 0;
     InetAddress host = InetAddress.getLocalHost();
-    File serverLocator = new File("/tmp/" + VendorIDtoNameTCPService.class.getName());
+    File serverLocator = new File("/tmp/eecs4413.demo.vendorIDtoNameService.socket");
 
     serverLocator.deleteOnExit();
     if (!serverLocator.exists()) {
