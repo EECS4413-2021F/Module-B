@@ -1,13 +1,13 @@
-# RESTful Example Store API
+# Example Store API
 
 - [Products API](#products-api)
   - [GET /products](#get-products)
   - [GET /v1/products](#get-v1products)
-  - [GET /product/&lt;id&gt;](#get-productid)
+  - [GET /products/&lt;id&gt;](#get-productsid)
   - [GET /v1/products/&lt;id&gt;](#get-v1productsid)
   - [POST /products](#post-products)
   - [POST /v1/products](#post-v1products)
-  - [PUT /product/&lt;id&gt;](#put-productid)
+  - [PUT /products/&lt;id&gt;](#put-productsid)
   - [PUT /v1/products/&lt;id&gt;](#put-v1productsid)
   - [DELETE /products/&lt;id&gt;](#delete-productsid)
   - [DELETE /v1/products/&lt;id&gt;](#delete-v1productsid)
@@ -20,6 +20,7 @@
   - [POST /cart/remove](#post-cartremove)
   - [POST /v1/cart/remove](#post-v1cartremove)
 
+**Note:** Most RESTful APIs are not truly RESTful, and this API is no exception.
 
 -----
 ## Products API
@@ -52,7 +53,7 @@ Additional fields:
 
 | Field         | Description
 |---------------|-----------------------------------------
-| `chain`       | If provided, filter using the previous request, in addition to the newly given parameters.
+| `chain`       | If provided, filter using the previous request, in addition to the newly given parameters. A principle of REST is that each request is stateless. Every request is treated as new. No session, no history. So, this feature violates REST, however, I wanted to demonstrate the use of sesssions, so I've added it here.
 
 Sample Response: `GET /v1/products`
 
@@ -92,7 +93,7 @@ Sample Response: `GET /v1/products`
 }
 ```
 
-### `GET /product/<id>`
+### `GET /products/<id>`
 ### `GET /v1/products/<id>`
 
 Retrieve a specific `Product` with the given `<id>`.
@@ -221,7 +222,7 @@ Sample Response 2: `POST /v1/products`
 }
 ```
 
-### `PUT /product/<id>`
+### `PUT /products/<id>`
 ### `PUT /v1/products/<id>`
 
 Update the values in the specified `Product`, given as JSON.
@@ -378,8 +379,14 @@ Add all of the items to the cart that match the given search filter.
 
 | Field         | Description
 |---------------|-----------------------------------------
-| `chain`       | If provided, add the products that match the previous request's filter.
+| `chain`       | If provided, add the products that match the previous request's filter. A principle of REST is that each request is stateless. Every request is treated as new. No session, no history. So, this feature violates REST, however, I wanted to demonstrate the use of sesssions, so I've added it here.
 | `addAll`      | Flag to permit adding all of the products in the store into the shopping cart.
+
+This is not a RESTful endpoint. First, it uses `POST` which strictly speaking is not a
+RESTful HTTP method. Most RESTful APIs are not truly RESTful, and this API is no exception.
+It has been pointed out, "why not use `PUT /cart` instead?". However, the `POST /cart/add` feature is
+different semantically than `PUT /cart`. `PUT /cart` would create the cart, a new cart, but we want to
+add an item or items to the cart, the existing cart.
 
 Sample request: `POST /v1/cart/add`
 
@@ -423,7 +430,13 @@ Remove all of the items to the cart that match the given search filter.
 
 | Field         | Description
 |---------------|-----------------------------------------
-| `chain`       | If provided, remove the products that match the previous request's filter.
+| `chain`       | If provided, remove the products that match the previous request's filter.  A principle of REST is that each request is stateless. Every request is treated as new. No session, no history. So, this feature violates REST, however, I wanted to demonstrate the use of sesssions, so I've added it here.
+
+This is not a RESTful endpoint. First, it uses `POST` which strictly speaking is not a
+RESTful HTTP method. Most RESTful APIs are not truly RESTful, and this API is no exception.
+It has been pointed out, "why not use `DELETE /cart` instead?". However, the `POST /cart/remove` feature is
+different semantically than `DELETE /cart`. `DELETE /cart` would delete the entire cart, but we want to
+just remove an item or some items from the cart and not delete whole thing.
 
 Sample request: `POST /v1/cart/remove`
 
