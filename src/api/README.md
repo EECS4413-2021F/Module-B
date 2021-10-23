@@ -4,17 +4,13 @@
   - [GET /products](#get-products)
   - [GET /v1/products](#get-v1products)
   - [GET /product/&lt;id&gt;](#get-productid)
-  - [GET /v1/product/&lt;id&gt;](#get-v1productid)
-  - [PUT /products](#put-products)
-  - [PUT /v1/products](#put-v1products)
+  - [GET /v1/products/&lt;id&gt;](#get-v1productsid)
   - [POST /products](#post-products)
   - [POST /v1/products](#post-v1products)
-  - [PUT  /product/&lt;id&gt;](#put--productid)
-  - [PUT  /v1/product/&lt;id&gt;](#put--v1productid)
-  - [POST /product/&lt;id&gt;](#post-productid)
-  - [POST /v1/product/&lt;id&gt;](#post-v1productid)
-  - [DELETE /product/&lt;id&gt;](#delete-productid)
-  - [DELETE /v1/product/&lt;id&gt;](#delete-v1productid)
+  - [PUT /product/&lt;id&gt;](#put-productid)
+  - [PUT /v1/products/&lt;id&gt;](#put-v1productsid)
+  - [DELETE /products/&lt;id&gt;](#delete-productsid)
+  - [DELETE /v1/products/&lt;id&gt;](#delete-v1productsid)
   - [Exceptions](#exceptions)
 - [Cart API](#cart-api)
   - [GET /cart](#get-cart)
@@ -23,6 +19,7 @@
   - [POST /v1/cart/add](#post-v1cartadd)
   - [POST /cart/remove](#post-cartremove)
   - [POST /v1/cart/remove](#post-v1cartremove)
+
 
 -----
 ## Products API
@@ -96,18 +93,18 @@ Sample Response: `GET /v1/products`
 ```
 
 ### `GET /product/<id>`
-### `GET /v1/product/<id>`
+### `GET /v1/products/<id>`
 
 Retrieve a specific `Product` with the given `<id>`.
 
-Sample Response: `GET /v1/product/S10_1678`
+Sample Response: `GET /v1/products/S10_1678`
 
 ```json
 {
   "version": "1.0",
   "rid": 1,
   "method": "GET",
-  "uri": "/Module_B/v1/product/S10_1678",
+  "uri": "/Module_B/v1/products/S10_1678",
   "result": {
     "id": "S10_1678",
     "name": "1969 Harley Davidson Ultimate Chopper",
@@ -121,17 +118,12 @@ Sample Response: `GET /v1/product/S10_1678`
 }
 ```
 
-### `PUT /products`
-### `PUT /v1/products`
+### `POST /products`
+### `POST /v1/products`
 
-Adds one or more `Product` objects to the database, given as JSON.
+Add one or more `Product` objects to the database, given as JSON.
 
-| Field         | Description
-|---------------|-----------------------------------------
-| `update`      | If provided, updates the values of existing `Product` object. Each `Product` must specify its `ID`.
-
-
-Sample Request 1: `PUT /v1/products`
+Sample Request 1: `POST /v1/products`
 
 ```json
 {
@@ -146,13 +138,13 @@ Sample Request 1: `PUT /v1/products`
 }
 ```
 
-Sample Response 1: `PUT /v1/products`
+Sample Response 1: `POST /v1/products`
 
 ```json
 {
   "version": "1.0",
   "rid": 3,
-  "method": "PUT",
+  "method": "POST",
   "uri": "/Module_B/v1/products",
   "inserted": {
     "id": "A320_2019",
@@ -167,7 +159,7 @@ Sample Response 1: `PUT /v1/products`
 }
 ```
 
-Sample Request 2: `PUT /v1/products`
+Sample Request 2: `POST /v1/products`
 
 ```json
 [
@@ -193,13 +185,13 @@ Sample Request 2: `PUT /v1/products`
 ]
 ```
 
-Sample Response 2: `PUT /v1/products`
+Sample Response 2: `POST /v1/products`
 
 ```json
 {
   "version": "1.0",
   "rid": 4,
-  "method": "PUT",
+  "method": "POST",
   "uri": "/Module_B/v1/products",
   "length": 2,
   "inserted": {
@@ -229,24 +221,12 @@ Sample Response 2: `PUT /v1/products`
 }
 ```
 
-### `POST /products`
-### `POST /v1/products`
-
-While strictly speaking `POST` is not a RESTful HTTP method, however,
-it is useful for easily distinguishing between a create request and
-a update request. The `PUT` is create or update when a flag is given and
-`POST` is strictly for updates.
-
-Same as `PUT /products?update=true`.
-
-### `PUT  /product/<id>`
-### `PUT  /v1/product/<id>`
-### `POST /product/<id>`
-### `POST /v1/product/<id>`
+### `PUT /product/<id>`
+### `PUT /v1/products/<id>`
 
 Update the values in the specified `Product`, given as JSON.
 
-Sample Request: `POST /v1/product/S700_3505`
+Sample Request: `PUT /v1/products/S700_3505`
 
 ```json
 {
@@ -255,14 +235,14 @@ Sample Request: `POST /v1/product/S700_3505`
 }
 ```
 
-Sample Response: `POST /v1/product/S700_3505`
+Sample Response: `PUT /v1/products/S700_3505`
 
 ```json
 {
   "version": "1.0",
   "rid": 7,
-  "method": "POST",
-  "uri": "/Module_B/v1/product/S700_3505",
+  "method": "PUT",
+  "uri": "/Module_B/v1/products/S700_3505",
   "updated": {
     "id": "S700_3505",
     "name": "The Titanic",
@@ -276,19 +256,19 @@ Sample Response: `POST /v1/product/S700_3505`
 }
 ```
 
-### `DELETE /product/<id>`
-### `DELETE /v1/product/<id>`
+### `DELETE /products/<id>`
+### `DELETE /v1/products/<id>`
 
 Delete the specified `Product`. Returns the delete record.
 
-Sample Response: `DELETE /v1/product/A320_2019`
+Sample Response: `DELETE /v1/products/A320_2019`
 
 ```json
 {
   "version": "1.0",
   "rid": 9,
   "method": "DELETE",
-  "uri": "/Module_B/v1/product/A320_2019",
+  "uri": "/Module_B/v1/products/A320_2019",
   "deleted": "A320_2019",
   "removed": {
     "id": "A320_2019",
@@ -312,7 +292,7 @@ Sample Exception:
   "version": "1.0",
   "rid": 10,
   "method": "DELETE",
-  "uri": "/Module_B/v1/product/A320_2019",
+  "uri": "/Module_B/v1/products/A320_2019",
   "exception": {
     "detailMessage": "No product exists with the given ID, use insert instead: A320_2019",
     "stackTrace": [

@@ -27,9 +27,9 @@ import api.model.ProductsDAO;
   name = "Products",
   urlPatterns = {
     "/products",
-    "/product/*",
+    "/products/*",
     "/v1/products",   // We should version our RESTful APIs.
-    "/v1/product/*"   // This is version 1.
+    "/v1/products/*"  // This is version 1.
   }
 )
 public class ProductsAPIService extends HttpServlet {
@@ -56,8 +56,8 @@ public class ProductsAPIService extends HttpServlet {
     String ctxPath = request.getContextPath();
     String pInfo   = request.getPathInfo();
 
-    if ((reqURI.startsWith(ctxPath + "/product/") || reqURI.startsWith(ctxPath + "/v1/product/")) && pInfo.length() > 1) {
-      doGetOne(request, response);  // GET /product/<id>
+    if ((reqURI.startsWith(ctxPath + "/products/") || reqURI.startsWith(ctxPath + "/v1/products/")) && pInfo.length() > 1) {
+      doGetOne(request, response);  // GET /products/<id>
     } else {
       doGetMany(request, response); // GET /products
     }
@@ -66,13 +66,8 @@ public class ProductsAPIService extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
-  {
-    // Strictly speaking POST is not a RESTful operation.
-    // However, we can use it to clearly distinguish between PUT (create) requests
-    // and PUT (update) request. All POST requests are treated as
-    // update requests.
-
-    doPut(request, response);
+  {   
+    doCreate(request, response); // POST /products
   }
 
   @Override
@@ -83,10 +78,8 @@ public class ProductsAPIService extends HttpServlet {
     String ctxPath = request.getContextPath();
     String pInfo   = request.getPathInfo();
 
-    if ((reqURI.startsWith(ctxPath + "/product/") || reqURI.startsWith(ctxPath + "/v1/product/")) && pInfo.length() > 1) {
-      doPutOne(request, response);  // PUT /product/<id>
-    } else {
-      doPutMany(request, response); // PUT /products
+    if ((reqURI.startsWith(ctxPath + "/products/") || reqURI.startsWith(ctxPath + "/v1/products/")) && pInfo.length() > 1) {
+      doUpdateOne(request, response);  // PUT /products/<id>
     }
   }
 
@@ -102,8 +95,8 @@ public class ProductsAPIService extends HttpServlet {
     String ctxPath = request.getContextPath();
     String pInfo   = request.getPathInfo();
 
-    if ((reqURI.startsWith(ctxPath + "/product/") || reqURI.startsWith(ctxPath + "/v1/product/")) && pInfo.length() > 1) {
-      doDeleteOne(request, response); // DELETE /product/<id>
+    if ((reqURI.startsWith(ctxPath + "/products/") || reqURI.startsWith(ctxPath + "/v1/products/")) && pInfo.length() > 1) {
+      doDeleteOne(request, response); // DELETE /products/<id>
     }
   }
 
@@ -112,7 +105,7 @@ public class ProductsAPIService extends HttpServlet {
 
   /**
    * Retrieve a single Product object with its given ID
-   * specified within its URL: /product/<id>.
+   * specified within its URL: /products/<id>.
    * 
    * @param request
    * @param response
@@ -122,12 +115,12 @@ public class ProductsAPIService extends HttpServlet {
   protected void doGetOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
-    ServletContext sc      = request.getServletContext();
-    HttpSession session    = request.getSession(true);
-    ProductsDAO dao        = (ProductsDAO)sc.getAttribute("ProductsDAO");
+    ServletContext sc       = request.getServletContext();
+    HttpSession session     = request.getSession(true);
+    ProductsDAO dao         = (ProductsDAO)sc.getAttribute("ProductsDAO");
     ProductsAPIResponse res = new ProductsAPIResponse(request, response);
-    String pid             = request.getPathInfo().substring(1);
-    ProductFilter filter   = new ProductFilter();
+    String pid              = request.getPathInfo().substring(1);
+    ProductFilter filter    = new ProductFilter();
 
     try {
       filter.setId(pid);
@@ -160,11 +153,11 @@ public class ProductsAPIService extends HttpServlet {
   protected void doGetMany(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
-    ServletContext sc      = request.getServletContext();
-    HttpSession session    = request.getSession(true);
+    ServletContext sc       = request.getServletContext();
+    HttpSession session     = request.getSession(true);
     ProductsAPIResponse res = new ProductsAPIResponse(request, response);
-    ProductsDAO dao        = (ProductsDAO)sc.getAttribute("ProductsDAO");
-    String chain           = request.getParameter("chain");
+    ProductsDAO dao         = (ProductsDAO)sc.getAttribute("ProductsDAO");
+    String chain            = request.getParameter("chain");
 
     ProductFilter filter = chain == null || chain.equals("false")
         ? new ProductFilter()
@@ -189,71 +182,39 @@ public class ProductsAPIService extends HttpServlet {
   }
 
   /**
-   * Create or update a single or multiple Product objects.
+   * Create a single or multiple Product objects.
    * Takes a request of a Product object, an array of Products, or
-   * a Products object containing an array of Products. Supports
-   * both creating new Products, requiring all fields be provided,
-   * or updating existing Products, with a selected sets of fields
-   * provided. Support both PUT and POST requests. POST is strictly
-   * for updates and PUT is by default for creation. PUT can be
-   * switched to update existing Products with the "update" query
-   * parameter set.
-   * 
-   *    PUT /products               - Create new Products
-   *    PUT /products?update=true   - Update existing Products
-   *    POST /products              - Same as: PUT /products?update=true
+   * a Products object containing an array of Products.
    *
    * @param request
    * @param response
    * @throws ServletException
    * @throws IOException
    */
-  protected void doPutMany(HttpServletRequest request, HttpServletResponse response)
+  protected void doCreate(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
-    ServletContext sc = request.getServletContext();
-    ProductsAPIRequest req    = ProductsAPIRequest.getInstance();
-    ProductsAPIResponse res   = new ProductsAPIResponse(request, response);
-    ProductsDAO dao   = (ProductsDAO)sc.getAttribute("ProductsDAO");
-
-    boolean update = "true".equals(request.getParameter("update"));
-
-    // We support POST methods. While not strictly RESTful,
-    // it is useful for distinguishing between a creation request
-    // and an update request. POST is strictly for updates.
-    if ("POST".equals(request.getMethod())) {
-      update = true;
-    }
+    ServletContext sc       = request.getServletContext();
+    ProductsAPIRequest req  = ProductsAPIRequest.getInstance();
+    ProductsAPIResponse res = new ProductsAPIResponse(request, response);
+    ProductsDAO dao         = (ProductsDAO)sc.getAttribute("ProductsDAO");
 
     try {
       JsonElement json = req.getRequestBody(request);
 
-      if (req.isProducts(json, update)) {
-        Products products = req.getProductsFromJson(json, update);
+      if (req.isProducts(json, false)) {
+        Products products = req.getProductsFromJson(json, false);
         Products changed  = new Products();
 
         for (Product p : products.getProducts()) {
-          if (update) {
-            dao.updateProduct(p);
-          } else {
-            dao.addProduct(p);
-          }
+          dao.addProduct(p);
           changed.add(dao.getProductById(p.getId()));
         }
-        if (update) {
-          res.serializeUpdateMany(changed);
-        } else {
-          res.serializeCreateMany(changed);
-        }
-      } else if (req.isProduct(json, update)) {
-        Product product = req.getProductFromJson(json, update);
-        if (update) {
-          dao.updateProduct(product);
-          res.serializeUpdateOne(dao.getProductById(product.getId()));
-        } else {
-          dao.addProduct(product);
-          res.serializeCreateOne(dao.getProductById(product.getId()));
-        }        
+        res.serializeCreateMany(changed);
+      } else if (req.isProduct(json, false)) {
+        Product product = req.getProductFromJson(json, false);
+        dao.addProduct(product);
+        res.serializeCreateOne(dao.getProductById(product.getId()));
       } else {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         res.serializeException(REQUEST_CANNOT_PARSE, json);
@@ -273,21 +234,21 @@ public class ProductsAPIService extends HttpServlet {
 
   /**
    * Update the values of a single Product with its specified
-   * Product ID within the URL: /product/<id>.
+   * Product ID within the URL: /products/<id>.
    * 
    * @param request
    * @param response
    * @throws ServletException
    * @throws IOException
    */
-  protected void doPutOne(HttpServletRequest request, HttpServletResponse response)
+  protected void doUpdateOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {
-    ServletContext sc = request.getServletContext();
-    ProductsAPIRequest req    = ProductsAPIRequest.getInstance();
-    ProductsAPIResponse res   = new ProductsAPIResponse(request, response);
-    ProductsDAO dao   = (ProductsDAO)sc.getAttribute("ProductsDAO");
-    String pid        = request.getPathInfo().substring(1);
+    ServletContext sc       = request.getServletContext();
+    ProductsAPIRequest req  = ProductsAPIRequest.getInstance();
+    ProductsAPIResponse res = new ProductsAPIResponse(request, response);
+    ProductsDAO dao         = (ProductsDAO)sc.getAttribute("ProductsDAO");
+    String pid              = request.getPathInfo().substring(1);
 
     try {
       JsonElement json = req.getRequestBody(request);
@@ -315,7 +276,7 @@ public class ProductsAPIService extends HttpServlet {
 
   /**
    * Delete the specified Product with the given ID within the
-   * request URL: DELETE /product/<id>.
+   * request URL: DELETE /products/<id>.
    * 
    * @param request
    * @param response
@@ -325,10 +286,10 @@ public class ProductsAPIService extends HttpServlet {
   protected void doDeleteOne(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException
   {   
-    ServletContext sc = request.getServletContext();
-    ProductsDAO dao   = (ProductsDAO)sc.getAttribute("ProductsDAO");
-    ProductsAPIResponse res   = new ProductsAPIResponse(request, response);
-    String pid        = request.getPathInfo().substring(1);
+    ServletContext sc       = request.getServletContext();
+    ProductsDAO dao         = (ProductsDAO)sc.getAttribute("ProductsDAO");
+    ProductsAPIResponse res = new ProductsAPIResponse(request, response);
+    String pid              = request.getPathInfo().substring(1);
 
     try {
       Product product = dao.getProductById(pid);
